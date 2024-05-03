@@ -29,7 +29,7 @@ class UserController {
             const user = await UserService.createUsers(Name, LastName, DateBirth, Address, PhoneNumber, Password, Role, Mail);
             res.status(201).json({ message: " Users inserer dans la base de donnee " });
         } catch (error) {
-            res.status(500).json({ error: ""+error });
+            res.status(500).json({ error: "" + error });
         }
     }
     async Register(req: Request, res: Response) {
@@ -44,7 +44,7 @@ class UserController {
                 res.status(201).json({ message: " Users inserer dans la base de donnee " });
             }
         } catch (error) {
-            res.status(500).json({ error:""+error });
+            res.status(500).json({ error: "" + error });
         }
     }
     async updateUsers(req: Request, res: Response) {
@@ -86,7 +86,7 @@ class UserController {
             }
         } catch (error) {
             console.log(error);
-            res.status(500).json({ error:""+error });
+            res.status(500).json({ error: "" + error });
         }
     }
     async Authentication_2(req: Request, res: Response) {
@@ -101,7 +101,7 @@ class UserController {
             }
         } catch (error) {
             console.log(error);
-            res.status(500).json({ error:""+error });
+            res.status(500).json({ error: "" + error });
         }
     }
     async getAvatar(req: Request, res: Response) {
@@ -255,6 +255,9 @@ class UserController {
             console.log(error);
             res.status(500).json(error);
         }
+    }
+    async test(req: Request, res: Response) {
+        res.status(200).json({ response: "mety" });
     }
 }
 export default new UserController();
