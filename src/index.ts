@@ -7,6 +7,7 @@ import authenticateToken from './midlleware/Token';
 import { APP_PORT } from './config/constant';
 import Main from './main';
 import apiExterneRouter from './routes/API-Externe.routes';
+import UserController from './module/Account/User/User.controller';
 
 const app = express();
 connectDB().then(() => {
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
 app.use('/API', authenticateToken, apiRouter);
 app.use('/', apiExterneRouter)
+app.use('/home',UserController.test)
 app.listen(APP_PORT, () => {
   console.log(`->Serveur en cours d'exécution sur le port ${APP_PORT}`);
 });

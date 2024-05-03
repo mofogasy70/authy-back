@@ -21,5 +21,6 @@ apiExterneRouter.use('/authentification_2', UserController.Authentication_2);
 apiExterneRouter.post('/checkToken', UserController.checkToken);
 apiExterneRouter.post('/exchangeToken', UserController.exchangeToken);
 apiExterneRouter.post('/Register', upload.single("file"), UserController.Register);
+apiExterneRouter.post('/test',UserController.Register);
 
 export default apiExterneRouter;
