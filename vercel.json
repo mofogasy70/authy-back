@@ -4,12 +4,9 @@
       "src": "./src/index.js",
       "use": "@now/node"
     }],
-    "routes": [{"handle": "filesystem"},
-      {
-        "src": "/.*",
-        "dest": "/"
-      }
+    "routes": [
+      {"src": "/api/(.*)", "dest": "/src/index.js"},
+      {"src": "/(.*)", "dest": "/src/index.js"}
     ]
   }
-  
   
