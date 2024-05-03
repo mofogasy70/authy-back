@@ -1,0 +1,12 @@
+pipelines:
+    default:
+      - step:
+          name: Deploy to dev
+          deployment: dev
+          script:
+            - echo "Deploying to dev environment"
+            - pipe: atlassian/ssh-run:0.2.2
+              variables:
+                SSH_USER: 'tsiory'
+                SERVER: 'server3.youngdev.mg'
+                COMMAND: '/var/www/vhosts/authy.mg/dev.api.authy.mg/app/deploy.sh'
