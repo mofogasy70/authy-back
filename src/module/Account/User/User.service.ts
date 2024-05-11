@@ -15,8 +15,7 @@ import SecurityService from '../../Security/security/Security.service';
 import Role from '../Role/Role.model';
 import Application from '../../Application/application/Application.model';
 import ActivityService from '../../Application/activity/Activity.service';
-import Stripe from "stripe";
-import UserAppSecurityChecksService from '../../Application/application-security-check/UserAppSecurityChecks.service';
+import bcrypt from 'bcrypt';
 interface AuthenticationResponse {
     isurl: boolean;
     istoken: boolean;
@@ -64,14 +63,28 @@ class UserService {
     }
     async createUsers_2(Name: String, LastName: String, DateBirth: Date, Address: String, PhoneNumber: String, Password: String, Mail: string, Avatar: string) {
         const role = await Role.findOne({ Name: "Users" });
+        const saltRounds = 10;
         try {
             if (role) {
-                const UserTemp = new User({
-                    Name, LastName, DateBirth, Address, PhoneNumber, Password, Role: role._id, Mail, Avatar
+                bcrypt.genSalt(saltRounds, (err, salt) => {
+                    if (err) {
+                        console.error('Erreur lors de la génération du sel :', err);
+                    } else {
+                        bcrypt.hash(Password, salt, async (err, hash) => {
+                            if (err) {
+                                console.error('Erreur lors du hachage du mot de passe :', err);
+                            } else {
+                                console.log(hash);
+                                const UserTemp = new User({
+                                    Name, LastName, DateBirth, Address, PhoneNumber, Password: hash, Role: role._id, Mail, Avatar
+                                });
+                                const Usercreate = await UserTemp.save();
+                                const UserAppcreate = await UserApplicationService.createUserApplications("6519767f6e29ff41fcdd4d35", Usercreate._id);
+                                const UserAppSecurity = await UserAppSecurityService.createCleanUserAppSecurity((UserAppcreate)._id);
+                            }
+                        });
+                    }
                 });
-                const Usercreate = await UserTemp.save();
-                const UserAppcreate = await UserApplicationService.createUserApplications("6519767f6e29ff41fcdd4d35", Usercreate._id);
-                const UserAppSecurity = await UserAppSecurityService.createCleanUserAppSecurity((UserAppcreate)._id);
             }
         } catch (error) {
             console.log(error);
@@ -87,7 +100,9 @@ class UserService {
     async Authentication(Mail: String, Password: String, info: any, ip: string) {
         let valiny: AuthenticationResponse;
         try {
-            const userApplication = await this.verifUser(Mail, Password, info,"d092530a-1386-4b90-9769-fcb4a38c477c", ip,false);
+            const userApplication = await this.verifUser(Mail, Password, info, "d092530a-1386-4b90-9769-fcb4a38c477c", ip, false);
+            console.log(userApplication);
+
             const userAppSecurity = await UserAppSecurity.findOne({ UserApplication: userApplication._id, Status: true });
             if (userAppSecurity) {
                 const LSecurityElements = SecurityService.getListeSecurity();
@@ -104,7 +119,7 @@ class UserService {
                 }
             }
             else {
-                const user:any = await User.findOne({_id:userApplication.User}).populate("Role").exec();
+                const user: any = await User.findOne({ _id: userApplication.User }).populate("Role").exec();
                 const application = await Application.findById(userApplication.Application);
                 const token = jwt.sign({ UserId: user._id, Role: user.Role.Name, UserApplication: userApplication._id }, 'Zr7$tpL9#qXquelzal', { expiresIn: '1h' });
                 await TokenServices.createTokens(token, user._id, "test");
@@ -121,15 +136,16 @@ class UserService {
             throw error;
         }
     }
-    async verifUser(Mail: String, Password: String, info: any, AppId: String, ip: string,create:boolean) {
+    async verifUser(Mail: String, Password: String, info: any, AppId: String, ip: string, create: boolean) {
         try {
             const user = await User.findOne({ Mail: Mail });
             if (user) {
                 const application = await Application.findOne({ AppId: AppId });
                 const userApplication = await UserApplication.findOne({ User: user._id, Application: application._id });
                 if (userApplication) {
-                    if (user.Password === Password) {
-                        await ConLogService.createConLogs(
+                    const result = bcrypt.compareSync(Password, user.Password);
+                    if (result) {
+                        ConLogService.createConLogs(
                             info.coord.latitude,
                             info.coord.longitude,
                             info.device.os.name,
@@ -142,7 +158,7 @@ class UserService {
                         return userApplication;
                     }
                     else {
-                        await ConLogService.createConLogs(
+                        ConLogService.createConLogs(
                             info.coord.latitude,
                             info.coord.longitude,
                             info.device.os.name,
@@ -152,12 +168,12 @@ class UserService {
                             userApplication._id,
                             false
                         );
-                        throw new Error("wrong Password")
+                        throw new Error("wrong Password");
                     }
                 } else {
                     if (create) {
-                        const userApplication=await UserApplicationService.createUserApplications(application._id,user._id);
-                        const userAppSecurity=await UserAppSecurityService.createCleanUserAppSecurity(userApplication._id);
+                        const userApplication = await UserApplicationService.createUserApplications(application._id, user._id);
+                        const userAppSecurity = await UserAppSecurityService.createCleanUserAppSecurity(userApplication._id);
                         return userApplication;
                     }
                 }
@@ -168,16 +184,13 @@ class UserService {
         } catch (error) {
             throw error;
         }
-
-
     }
     async Authentication_2(Mail: String, Password: String, info: any, AppId: string, ip: string) {
         let valiny: signinResponse;
         try {
-
-            const userApplication = await this.verifUser(Mail, Password, info, AppId, ip,true);
+            const userApplication = await this.verifUser(Mail, Password, info, AppId, ip, true);
             const userAppSecurity = await UserAppSecurity.findOne({ UserApplication: userApplication._id, Status: true });
-            if (userAppSecurity) {
+            if (userAppSecurity) { 
                 const LSecurityElements = SecurityService.getListeSecurity();
                 for (let index = 0; index < LSecurityElements.length; index++) {
                     if (new mongoose.Types.ObjectId(userAppSecurity.Security).toString() === LSecurityElements[index]._id.toString()) {

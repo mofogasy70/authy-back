@@ -35,14 +35,8 @@ class UserController {
     async Register(req: Request, res: Response) {
         const { Name, LastName, DateBirth, Address, PhoneNumber, Password, Mail } = req.body;
         try {
-            if (req.file) {
-                const user = await UserService.createUsers_2(Name, LastName, DateBirth, Address, PhoneNumber, Password, Mail, "/User/avatar/" + req.file?.originalname);
-                res.status(201).json({ message: " Users inserer dans la base de donnee " });
-            }
-            else {
-                const user = await UserService.createUsers_2(Name, LastName, DateBirth, Address, PhoneNumber, Password, Mail, "defautl.png");
-                res.status(201).json({ message: " Users inserer dans la base de donnee " });
-            }
+            const user = await UserService.createUsers_2(Name, LastName, DateBirth, Address, PhoneNumber, Password, Mail, "defautl.png");
+            res.status(201).json({ message: " Users Registered" });
         } catch (error) {
             res.status(500).json({ error: "" + error });
         }
