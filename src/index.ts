@@ -33,8 +33,7 @@ app.use('/home', UserController.test);
 io.on('connection', (socket: Socket) => {
   socket.on('notification', (data) => {
     try {
-      console.log(data);
-      socket.emit("test", { type: data.type, message: data.message });
+      socket.emit(data.UserId, { type: data.type, message: data.message });
     } catch (error) {
       console.log(error);
     }

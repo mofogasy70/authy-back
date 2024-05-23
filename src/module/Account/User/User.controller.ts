@@ -223,7 +223,6 @@ class UserController {
     async subscription(req: Request, res: Response) {
 
         const { email, payment_method } = req.body;
-        console.log(" SUBSCRIPTION " + JSON.stringify(req.body, null, 2));
         try {
             const stripe = new Stripe(
                 "pk_test_51OHJQsBvc6PWAdhY9IjFuR7LmbdkDarPvL5i4Z1HYNhWLK0lwNXAFfT75LatRfPr4MgQM9XAh9yN5MCo7AJVHlqU00tMeFNUAm"

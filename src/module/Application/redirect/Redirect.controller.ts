@@ -24,7 +24,6 @@ class RedirectController {
     async createRedirects(req: Request, res: Response) {
         const { value,Application } = req.body;
         try {
-            console.log("meetyyy");
             const user = await RedirectService.createRedirect(value,Application);
             res.status(201).json({ message: " Redirects inserer dans la base de donnee " });
         } catch (error) {

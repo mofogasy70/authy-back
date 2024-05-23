@@ -32,7 +32,6 @@ class ApplicationController {
         const decoded: any = token && jwt.decode(token);
         try {
             const user = await ApplicationService.createApplication(DomainName, decoded.UserId, Uri,"/Application/Logo/" + req.file?.filename, Categorie, Platform, UriRedirection);
-            console.log(user);
             res.status(201).json({ message: " Applications inserer dans la base de donnee " });
         } catch (error) {
             console.log(error);
@@ -108,7 +107,6 @@ class ApplicationController {
         const token = req.header('x-auth-token');
         const decoded: any = token && jwt.decode(token);
         try {
-            //console.log(req.body);
             const LApplication = await ApplicationService.search(status, start, end, DomainName,decoded.UserId,NameId,sort);
             res.status(201).json(LApplication);
         } catch (error) {

@@ -9,7 +9,6 @@ class ApplicationService {
     async getApplication(UserId: string) {
         try {
             const valiny = await Application.find({ AppId: { $ne: "d092530a-1386-4b90-9769-fcb4a38c477c" }, authors: new mongoose.Types.ObjectId(UserId) }).populate("Categorie").populate("Platform");
-            console.log(valiny);
             return valiny;
         } catch (error) {
             throw error;

@@ -64,7 +64,6 @@ class TypeSecurityService {
                 application=(await Application.findOne({DomainName:"Authy"}))?._id;
             }
             const userApplication=await UserApplicationService.findUserApplication(application,user);
-            //console.log(userApplication);
             let LTypeSecuritysWithChild: ITypeSecuritysWithChild[] = [];
             let LTypeSecurity = await TypeSecurity.find();
 

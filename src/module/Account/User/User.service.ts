@@ -74,7 +74,6 @@ class UserService {
                             if (err) {
                                 console.error('Erreur lors du hachage du mot de passe :', err);
                             } else {
-                                console.log(hash);
                                 const UserTemp = new User({
                                     Name, LastName, DateBirth, Address, PhoneNumber, Password: hash, Role: role._id, Mail, Avatar
                                 });
@@ -101,8 +100,6 @@ class UserService {
         let valiny: AuthenticationResponse;
         try {
             const userApplication = await this.verifUser(Mail, Password, info, "d092530a-1386-4b90-9769-fcb4a38c477c", ip, false);
-            console.log(userApplication);
-
             const userAppSecurity = await UserAppSecurity.findOne({ UserApplication: userApplication._id, Status: true });
             if (userAppSecurity) {
                 const LSecurityElements = SecurityService.getListeSecurity();
@@ -114,7 +111,6 @@ class UserService {
                             url: await LSecurityElements[index].class.landingPage(userApplication._id, userAppSecurity.Security),
                             token: null
                         }
-                        console.log(valiny);
                     }
                 }
             }

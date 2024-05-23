@@ -12,17 +12,15 @@ class ConLogController {
             const decoded: any = token && jwt.decode(token);
             const Datetemp = new Date(date);
             const datef = new Date(Datetemp.getFullYear(), Datetemp.getMonth() + 1, 0);
-            //console.log(datef);
-            
+
             for (let index = 0; index < Application.length; index++) {
-                    const LConLog = await ConLogService.getIntervalConlog(
+                const LConLog = await ConLogService.getIntervalConlog(
                     new Date(Datetemp.getFullYear() + '-' + (Datetemp.getMonth() + 1) + '-01'),
                     new Date(Datetemp.getFullYear() + '-' + (Datetemp.getMonth() + 1) + '-' + datef.getDate()),
                     new mongoose.Types.ObjectId(Application[index]),
                     new mongoose.Types.ObjectId(decoded.UserId));
-                    valiny.push(LConLog);
+                valiny.push(LConLog);
             }
-            //console.log(valiny);
             res.status(201).json(valiny);
         } catch (error) {
             console.log(error);
@@ -30,14 +28,31 @@ class ConLogController {
         }
     }
     async getDeviceList(req: Request, res: Response) {
-        const {Application } = req.body;
+        const { Application } = req.body;
         try {
             let valiny: any;;
             const token = req.header('x-auth-token');
             const decoded: any = token && jwt.decode(token);
-            valiny=await ConLogService.getDeviceList(Application,decoded.UserId);
-            //console.log(valiny);
+            valiny = await ConLogService.getDeviceList(Application, decoded.UserId);
             res.status(201).json(valiny);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
+    }
+    async getConLogs(req: Request, res: Response) {
+        try {
+            const response = await ConLogService.getConLogs(Number(req.query.page), Number(req.query.limit));
+            res.status(201).json(response);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
+    }
+    async getWeekleConLogs(req: Request, res: Response) {
+        try {
+            const response = await ConLogService.getWeekleConLogs();
+            res.status(201).json(response);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: error });
