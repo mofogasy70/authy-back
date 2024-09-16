@@ -56,8 +56,108 @@ class Mail {
 
         return valiny;
     }
+    tohtmlForgot(link: string, name: string): string {
+        const response = `
+        <!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vérification par code</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .email-header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #dddddd;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #333333;
+    }
+
+    .email-body {
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    .email-body p {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: #555555;
+    }
+
+    .email-body .code {
+      display: inline-block;
+      margin: 20px 0;
+      padding: 10px 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #1d4ed8;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .email-footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #dddddd;
+    }
+
+    .email-footer p {
+      margin: 0;
+      font-size: 14px;
+      color: #999999;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>Reset password link</h1>
+    </div>
+    <div class="email-body">
+      <p>Hi ${name},</p>
+      <p>We hope this message finds you well. To complete the process, please follow the provided link.:</p>
+      <a href="${link}">${link}</a>
+    </div>
+    <div class="email-footer">
+      <p>Best regards,</p>
+      <p>your helpful assistant from Authy</p>
+    </div>
+  </div>
+</body>
+</html>
+        `
+        return response;
+
+    }
     async sendEmailCode(to: string, code: string) {
         await this.sendEmailnodemailer("Code de confirmation", to, this.Tohtml(code));
+    }
+    async sendEmailForgotPass(to: string, link: string, name: string) {
+        await this.sendEmailnodemailer("Link to recover your Authy account password", to, this.tohtmlForgot(link, name));
     }
     async sendEmailnodemailer(subject: string, to: string, html: string) {
         const mymail = 'contact@youngdev.mg';
@@ -80,7 +180,7 @@ class Mail {
 
         try {
             const info = await transporter.sendMail(mailOptions);
-            console.log('E-mail envoyé : ' + info.response);
+            //console.log('E-mail envoyé : ' + info.response);
         } catch (error) {
             console.error(error);
         }

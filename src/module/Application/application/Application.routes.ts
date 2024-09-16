@@ -3,13 +3,13 @@ import { Router } from 'express';
 import multer from "multer";
 import path from "path";
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, 'src/module/Logo');
-    },
-    filename: (req, file, cb) => {
-      cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-    },
-  });
+  destination: (req, file, cb) => {
+    cb(null, 'src/module/Logo');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
 const upload = multer({ storage });
 const Applicationrouter = Router();
 /**
@@ -40,9 +40,12 @@ const Applicationrouter = Router();
  *         description: Erreur interne du serveur.
  */
 Applicationrouter.get("/", ApplicationController.getApplications);
+Applicationrouter.post("/validerApp", ApplicationController.validerApp);
 Applicationrouter.get("/getApproved", ApplicationController.getApproved);
 Applicationrouter.get("/getHoldOn", ApplicationController.getHoldOn);
 Applicationrouter.get("/getNotApproved", ApplicationController.getNotApproved);
+Applicationrouter.get("/getAppByAdmin", ApplicationController.getAppByAdmin);
+Applicationrouter.get("/getUsByAdmin", ApplicationController.getUserByAdmin);
 
 
 
@@ -83,7 +86,7 @@ Applicationrouter.get("/:id", ApplicationController.findApplications);
  *       500:
  *         description: Erreur interne du serveur.
  */
-Applicationrouter.post("/",upload.single("file"), ApplicationController.createApplications);
+Applicationrouter.post("/", upload.single("file"), ApplicationController.createApplications);
 /**
  * @swagger
  * /API/Applications/{id}:

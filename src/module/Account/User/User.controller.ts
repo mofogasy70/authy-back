@@ -2,8 +2,7 @@ import UserService from "./User.service";
 import { Request, Response } from 'express';
 import fs from 'fs';
 import mime from 'mime-types';
-import { sign, verify } from "jsonwebtoken";
-import { API_URL } from "../../../config/constant";
+import jwt from 'jsonwebtoken';
 import Stripe from "stripe";
 class UserController {
     async getUsers(req: Request, res: Response) {
@@ -69,6 +68,7 @@ class UserController {
         }
     }
     async Authentication(req: Request, res: Response) {
+        console.log(req.body);
         try {
             const { Mail, Password, info } = req.body;
             const ip: any = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -85,10 +85,10 @@ class UserController {
     }
     async Authentication_2(req: Request, res: Response) {
         try {
-            const { Mail, Password, info, AppID } = req.body;
+            const { Mail, Password, info, AppID, UriRedirection, type } = req.body;
             const ip: any = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
             try {
-                const valiny = await UserService.Authentication_2(Mail, Password, info, AppID, ip);
+                const valiny = await UserService.Authentication_2(Mail, Password, info, AppID, ip, type, UriRedirection);
                 res.status(200).json({ valiny });
             } catch (error) {
                 throw error
@@ -213,7 +213,8 @@ class UserController {
         const accessToken = req.body.accessToken;
         try {
             const valiny = await UserService.exchangeToken(accessToken);
-            res.status(200).json({ response: valiny });
+            console.log(valiny);
+            res.status(200).json({ valiny });
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "" + error });
@@ -251,6 +252,38 @@ class UserController {
     }
     async test(req: Request, res: Response) {
         res.status(200).json({ response: "mety" });
+    }
+    async ForgotPass(req: Request, res: Response) {
+        try {
+            const email: any = req.query.email;
+            await UserService.ForgotPass(email)
+            res.status(200).json({ message: "email send ,please verify your email" });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: "" + error })
+        }
+    }
+    async getUserByAdmin(req: Request, res: Response) {
+        const s: any = req.query.Role
+        try {
+            const response = await UserService.getUserByadmin(Number(req.query.page), Number(req.query.limit), s);
+            res.status(200).json(response);
+        } catch (error) {
+
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
+    }
+    async getdashboard(req: Request, res: Response) {
+        const token = req.header('x-auth-token');
+        const decoded: any = token && jwt.decode(token);
+        try {
+            const LUserApplication = await UserService.getdashboard(decoded.UserId);
+            res.status(200).json(LUserApplication);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
+        }
     }
 }
 export default new UserController();

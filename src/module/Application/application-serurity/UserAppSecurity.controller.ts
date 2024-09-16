@@ -63,7 +63,7 @@ class UserAppSecurityController {
     async chageStatus(req: Request, res: Response) {
         const { userAppSecurity, status } = req.body;
         try {
-            console.log(userAppSecurity);
+            //console.log(userAppSecurity);
             const UserAppSecurity = await UserAppSecurityService.chageStatus(userAppSecurity, status);
             res.status(200).json({ message: 'status changed' });
         } catch (error) {

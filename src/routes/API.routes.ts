@@ -11,8 +11,7 @@ import TypeSecurityrouter from '../module/Security/type-security/TypeSecurity.ro
 import Activityrouter from '../module/Application/activity/Activity.routes';
 import Platformrouter from '../module/Application/platform/Platform.routes';
 import Categorierouter from '../module/Application/categorie/Categorie.routes';
-import Originsrouter from '../module/Application/Origins/Origins.routes';
-import Redirectrouter from '../module/Application/redirect/Redirect.routes';
+import Devicerouter from '../module/Application/device/Device.routes';
 
 
 const apiRouter = express.Router();
@@ -25,11 +24,10 @@ apiRouter.use('/UserAppSecurity', UserAppSecurityrouter);
 apiRouter.use('/UserAppSecurityChecks', UserAppSecurityChecksrouter);
 apiRouter.use('/Security', Securityrouter);
 apiRouter.use('/TypeSecurity', TypeSecurityrouter);
-apiRouter.use('/ConLog',ConLogrouter);
-apiRouter.use('/Activity',Activityrouter);
-apiRouter.use('/Platform',Platformrouter);
-apiRouter.use('/Categorie',Categorierouter);
-apiRouter.use('/Origins',Originsrouter);
-apiRouter.use('/Redirect',Redirectrouter);
+apiRouter.use('/ConLog', ConLogrouter);
+apiRouter.use('/Activity', Activityrouter);
+apiRouter.use('/Platform', Platformrouter);
+apiRouter.use('/Categorie', Categorierouter);
+apiRouter.use('/Device', Devicerouter);
 
 export default apiRouter;

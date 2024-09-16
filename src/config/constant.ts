@@ -9,3 +9,4 @@ export const API_URL = process.env.API_URL
 export const accountSid=process.env.accountSid
 export const authToken=process.env.authToken
 export const twilioNum=process.env.twilioNum
+export const CODE_TOKEN=process.env.CODE_TOKEN

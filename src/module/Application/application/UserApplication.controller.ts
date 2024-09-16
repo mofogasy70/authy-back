@@ -3,9 +3,11 @@ import UserApplicationService from './UserApplication.service';
 import jwt from 'jsonwebtoken';
 class UserApplicationController {
     async getUserApplications(req: Request, res: Response) {
+        const token = req.header('x-auth-token');
+        const decoded: any = token && jwt.decode(token);
         try {
-            const LUserApplication = await UserApplicationService.getUserApplications();
-            res.status(201).json(LUserApplication);
+            const LUserApplication = await UserApplicationService.getUserApplications(decoded.UserId, Number(req.query.limit), Number(req.query.page));
+            res.status(200).json(LUserApplication);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: error });
@@ -59,6 +61,17 @@ class UserApplicationController {
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: 'suppression non reussite' });
+        }
+    }
+    async getUserAppConformed(req: Request, res: Response) {
+        const token = req.header('x-auth-token');
+        const decoded: any = token && jwt.decode(token);
+        try {
+            const LUserApplication = await UserApplicationService.getUserAppConformed(decoded.UserId);
+            res.status(200).json(LUserApplication);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error });
         }
     }
 }

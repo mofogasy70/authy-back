@@ -41,8 +41,13 @@ class ConLogController {
         }
     }
     async getConLogs(req: Request, res: Response) {
+        const params: any = {
+            status: req.query.status,
+            date: req.query.date,
+            UserApplication: req.query.UserApplication,
+        }
         try {
-            const response = await ConLogService.getConLogs(Number(req.query.page), Number(req.query.limit));
+            const response = await ConLogService.getConLogs(Number(req.query.page), Number(req.query.limit), params);
             res.status(201).json(response);
         } catch (error) {
             console.log(error);

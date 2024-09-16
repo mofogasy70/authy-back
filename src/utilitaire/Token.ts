@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import TokenServices from '../module/Security/Token/Token.services';
- async function veriftokenBase(token:string,userId:String) {
-  const Tokenbase = await TokenServices.getTokens(token,userId);
+import { CODE_TOKEN } from '../config/constant';
+async function veriftokenBase(token: string, userId: String) {
+  const Tokenbase = await TokenServices.getTokens(token, userId);
   if (!Tokenbase) {
-     throw new Error('Token expiré, veuillez vous réauthentifier');
+    throw new Error('Token expiré, veuillez vous réauthentifier');
   }
 }
 
@@ -14,9 +15,9 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
     return res.status(401).json({ message: 'Token non trouvé, veuillez vous authentifier' });
   }
   try {
-    jwt.verify(token, 'Zr7$tpL9#qXquelzal');
+    jwt.verify(token, CODE_TOKEN);
     const decoded: any = jwt.decode(token);
-    veriftokenBase(token,decoded.UserId);
+    veriftokenBase(token, decoded.UserId);
     next();
   } catch (err) {
     console.log(err);

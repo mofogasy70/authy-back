@@ -9,6 +9,7 @@ import { APP_PORT } from './config/constant';
 import Main from './main';
 import apiExterneRouter from './routes/API-Externe.routes';
 import UserController from './module/Account/User/User.controller';
+import socketMiddleware from './midlleware/soket';
 
 const app = express();
 const server = http.createServer(app);
@@ -25,22 +26,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
 
 // Routes
+app.use(socketMiddleware(io))
 app.use('/API', authenticateToken, apiRouter);
 app.use('/', apiExterneRouter);
 app.use('/home', UserController.test);
 
-// Gestion des connexions Socket.io
-io.on('connection', (socket: Socket) => {
-  socket.on('notification', (data) => {
-    try {
-      socket.emit(data.UserId, { type: data.type, message: data.message });
-    } catch (error) {
-      console.log(error);
-    }
-  });
-});
 
 // Démarrage du serveur
-server.listen(APP_PORT, () => {
+server.listen(Number(APP_PORT), '0.0.0.0', 1, () => {
   console.log(`->Serveur en cours d'exécution sur le port ${APP_PORT}`);
 });

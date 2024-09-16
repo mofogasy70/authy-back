@@ -1,8 +1,8 @@
 import ConLog from "./ConLog.model";
-import mongoose from "mongoose";
+import mongoose, { PipelineStage } from "mongoose";
 import UserApplication from "../application/UserApplication.model";
 import Application from "../application/Application.model";
-import { startOfWeek, endOfWeek, format } from 'date-fns';
+import { startOfWeek, endOfWeek } from 'date-fns';
 interface IConLogData {
     _id: {
         UserApplication: mongoose.Types.ObjectId;
@@ -12,14 +12,108 @@ interface IConLogData {
     }
     count: number;
 }
+interface ConLogInput {
+    CorLat: string,
+    CorLong: string,
+
+    BrowserName: string,
+    BrowserType: string,
+    BrowserVersion: string,
+    BrowserEngine: string,
+
+    device: mongoose.Types.ObjectId,
+    reason?: string,
+    UserApplication: mongoose.Types.ObjectId,
+    status: boolean
+}
 class ConLogService {
-    async getConLogs(page, limit) {
+    async getConLogs(page, limit, params: any) {
+        console.log(params);
+
+        let date1
+        let date2
+        if (params.createdAt) {
+            const str: string = params.createdAt;
+            date1 = new Date(Number(str.split("|")[0]))
+            date2 = new Date(Number(str.split("|")[1]))
+            console.log(date1, " ", date2);
+        }
         try {
+            const pipeline: PipelineStage[] = [
+                {
+                    $lookup: {
+                        from: 'userapplications',
+                        localField: 'UserApplication',
+                        foreignField: '_id',
+                        as: 'joinedUserApplications'
+                    }
+                },
+                { $unwind: '$joinedUserApplications' },
+                {
+                    $lookup: {
+                        from: 'applications',
+                        localField: 'joinedUserApplications.Application',
+                        foreignField: '_id',
+                        as: 'joinedApplications'
+                    }
+                },
+                { $unwind: '$joinedApplications' },
+                {
+                    $lookup: {
+                        from: 'devices',
+                        localField: 'device',
+                        foreignField: '_id',
+                        as: 'joineddevices'
+                    }
+                },
+                { $unwind: '$joineddevices' },
+                {
+                    $addFields: {
+                        color: 'green',
+                        title: "$joinedApplications.DomainName",
+                        start: "$Date",
+                        end: {
+                            $add: ["$Date", 3600000]
+                        }
+                    }
+                },
+                {
+                    $sort: { start: -1 }
+                },
+                {
+                    $skip: limit * (page - 1)
+                },
+                {
+                    $limit: limit
+                }
+            ];
+            if (params.UserApplication) {
+                pipeline.push({
+                    $match: {
+                        UserApplication: new mongoose.Types.ObjectId(params.UserApplication)
+                    }
+                });
+            }
+            if (date1 && date2) {
+                pipeline.push({
+                    $match: {
+                        start: {
+                            $gte: date1,
+                            $lte: date2
+                        }
+                    }
+                });
+            }
+            if (params.status) {
+                pipeline.push({
+                    $match: {
+                        status: params.status === "0" ? true : false
+                    }
+                });
+            }
             const totalCount = await ConLog.countDocuments({});
             const totalPages = Math.ceil(totalCount / limit);
-            const logs = await ConLog.find({})
-                .skip(limit * (page - 1))
-                .limit(limit);
+            const logs = await ConLog.aggregate(pipeline);
             return {
                 docs: logs,
                 metadata: {
@@ -98,34 +192,11 @@ class ConLogService {
         ];
         try {
             const response = await ConLog.aggregate(pipeline);
-            console.log(response);
             return response;
         } catch (error) {
             throw error;
         }
     }
-    async getdevice(page, limit) {
-        try {
-            const pipeline = [
-                {
-                    $group: {
-                        _id: {
-                            device: '$device',
-                            ip: '$IP',
-                            system: '$system'
-                        }
-                    },
-                    
-
-                }
-            ]
-            const response = await ConLog.aggregate(pipeline);
-            return response;
-        } catch (error) {
-            throw error
-        }
-    }
-
     async getIntervalConlog(DateD: Date, DateF: Date, Application: mongoose.Types.ObjectId, User: mongoose.Types.ObjectId) {
         try {
             const userApplication = await UserApplication.findOne({ User: User, Application: Application });
@@ -165,7 +236,6 @@ class ConLogService {
                     else { datestring = temp._id.Year + "-" + temp._id.Month + "-" + temp._id.Day; }
                     const date = new Date(datestring);
                     if (DateTemp.getTime() === date.getTime()) {
-                        //console.log(date, DateTemp);
                         tab.push(temp);
                         compteur++;
                         break;
@@ -219,26 +289,11 @@ class ConLogService {
         );
         return valiny;
     }
-    async createConLogs(
-        CorLat: string,
-        CorLong: string,
-        system: string,
-        device: string,
-        IP: string,
-        Browser: string,
-        UserApplication: string,
-        status: boolean) {
+    async createConLogs(conLogInput: ConLogInput) {
         try {
             const ConLogTemp = new ConLog({
                 Date: new Date(),
-                CorLat,
-                CorLong,
-                system,
-                device,
-                IP,
-                Browser,
-                UserApplication,
-                status
+                ...conLogInput
             });
             return await ConLogTemp.save();
         } catch (error) {

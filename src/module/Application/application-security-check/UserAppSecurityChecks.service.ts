@@ -6,11 +6,20 @@ import TokenServices from "../../Security/Token/Token.services";
 import SecurityService from "../../Security/security/Security.service";
 import User from "../../Account/User/User.model";
 import Application from "../application/Application.model";
+import { CODE_TOKEN } from "../../../config/constant";
 interface AuthenticationResponse {
     isurl: boolean;
     istoken: boolean;
     url: string;
     token: any
+}
+interface signinResponse {
+    isurl: boolean;
+    istoken: boolean;
+    url: string;
+    accessToken: any;
+    refreshToken: any;
+    navigate: boolean;
 }
 class UserAppSecurityChecksService {
     async getUserAppSecurityCheckss() {
@@ -80,7 +89,7 @@ class UserAppSecurityChecksService {
             throw error;
         }
     }
-    async Check(UserApplicationstr: string, Security: string, object: Object): Promise<AuthenticationResponse> {
+    async Check(UserApplicationstr: string, Security: string, object: Object, UriRedirection: string, type: number): Promise<signinResponse> {
         try {
             const LSecurityElements = SecurityService.getListeSecurity();
             for (let index = 0; index < LSecurityElements.length; index++) {
@@ -92,22 +101,40 @@ class UserAppSecurityChecksService {
                         const application = await Application.findById(userApplications.Application);
                         const user: any = await User.findById(userApplications.User).populate("Role").exec();
                         if (application.AppId === "d092530a-1386-4b90-9769-fcb4a38c477c") {
-                            const token = jwt.sign({ UserId: user._id, Role: user.Role.Name,UserApplication:userApplications._id }, 'Zr7$tpL9#qXquelzal', { expiresIn: '1h' });
+                            const token = jwt.sign({ UserId: user._id, Role: user.Role.Name, LastName: user.LastName, Avatar: user.Avatar, UserApplication: userApplications._id }, CODE_TOKEN, { expiresIn: '24h' });
                             await TokenServices.createTokens(token, user._id, "test");
                             return {
-                                isurl: false,
-                                istoken: true,
-                                token: token,
-                                url: undefined,
+                                isurl: true,
+                                istoken: false,
+                                url: null,
+                                accessToken: token,
+                                refreshToken: null,
+                                navigate: true
                             }
                         }
                         if (application.AppId !== "d092530a-1386-4b90-9769-fcb4a38c477c") {
-                            const token = jwt.sign({ UserId: user._id }, 'Zr7$tpL9#qXquelzal', { expiresIn: '1h' });
-                            return {
-                                isurl: true,
-                                istoken: true,
-                                token: token,
-                                url: application.UriRedirection,
+                            const refreshToken = jwt.sign({}, CODE_TOKEN, { expiresIn: '30d' });
+                            const refreshTokenBase = await TokenServices.createTokens(refreshToken, user._id, UserApplicationstr);
+                            const accessToken = jwt.sign({ refreshToken: refreshTokenBase._id, }, CODE_TOKEN, { expiresIn: '1h' });
+                            if (type === 1) {
+                                return {
+                                    isurl: true,
+                                    istoken: false,
+                                    url: application.UriRedirection.includes(UriRedirection) ? UriRedirection + `?accessToken=${accessToken}&refreshToken=${refreshToken}` : null,
+                                    accessToken: null,
+                                    refreshToken: null,
+                                    navigate: false
+                                };
+                            }
+                            else {
+                                return {
+                                    isurl: false,
+                                    istoken: true,
+                                    url: null,
+                                    accessToken: accessToken,
+                                    refreshToken: refreshToken,
+                                    navigate: false
+                                };
                             }
                         }
                     }

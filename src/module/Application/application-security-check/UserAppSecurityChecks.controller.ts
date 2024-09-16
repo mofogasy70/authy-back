@@ -62,9 +62,9 @@ class UserAppSecurityChecksController {
         }
     }
     async Check(req: Request, res: Response) {
-        const { UserApplications, Security, object } = req.body;
+        const { UserApplications, Security, object, type, UriRedirection } = req.body;
         try {
-            res.status(200).json({message:await UserAppSecurityChecksService.Check(UserApplications, Security,object)});
+            res.status(200).json({ message: await UserAppSecurityChecksService.Check(UserApplications, Security, object, UriRedirection, type) });
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "" + error });
@@ -73,7 +73,7 @@ class UserAppSecurityChecksController {
     async Init(req: Request, res: Response) {
         const { UserApplications, Security } = req.body;
         try {
-            res.status(200).json({message:"code send successfull .You have "+await UserAppSecurityChecksService.Init(UserApplications, Security)+" shipments left"});
+            res.status(200).json({ message: "code send successfull .You have " + await UserAppSecurityChecksService.Init(UserApplications, Security) + " attempt left" });
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "" + error });

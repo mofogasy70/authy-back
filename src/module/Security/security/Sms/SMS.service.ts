@@ -6,7 +6,7 @@ import UserAppSecurityChecks from "../../../Application/application-security-che
 import * as jwt from 'jsonwebtoken';
 import User from "../../../Account/User/User.model";
 import UserApplication from "../../../Application/application/UserApplication.model";
-import { accountSid, authToken, twilioNum } from '../../../../config/constant';
+import { CODE_TOKEN, accountSid, authToken, twilioNum } from '../../../../config/constant';
 interface IUserAppSecurityChecks extends Document {
     _id: mongoose.Types.ObjectId,
     Attemps: number,
@@ -27,7 +27,7 @@ interface IUserAppSecurity extends Document {
 }
 class SMSservice implements SecurityClass {
     async landingPage(UserApplications: string, Security: string): Promise<string> {
-        const token = jwt.sign({ UserApplications: UserApplications, Security: Security }, 'Zr7$tpL9#qXquelzal', { expiresIn: '1h' });
+        const token = jwt.sign({ UserApplications: UserApplications, Security: Security },CODE_TOKEN, { expiresIn: '1h' });
         return "/Confirm/" + token;
     }
     async Redirect(): Promise<string> {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import TokenServices from '../module/Security/Token/Token.services';
+import { CODE_TOKEN } from '../config/constant';
  async function veriftokenBase(token:string,userId:String) {
   const Tokenbase = await TokenServices.getTokens(token,userId);
   if (!Tokenbase) {
@@ -14,7 +15,7 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
     return res.status(401).json({ message: 'Token non trouvé, veuillez vous authentifier' });
   }
   try {
-    jwt.verify(token, 'Zr7$tpL9#qXquelzal');
+    jwt.verify(token,CODE_TOKEN);
     const decoded: any = jwt.decode(token);
     veriftokenBase(token,decoded.UserId);
     next();

@@ -177,6 +177,7 @@ UserApplicationrouter.put("/:id", UserApplicationController.updateUserApplicatio
  *         description: Erreur interne du serveur.
  */
 UserApplicationrouter.delete("/:id", UserApplicationController.deleteUserApplications);
+UserApplicationrouter.get("/getUserAppConformed", UserApplicationController.getUserAppConformed);
 
 export default UserApplicationrouter;
 

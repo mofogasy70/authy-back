@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { PipelineStage } from "mongoose";
 import Application from "./Application.model";
 import { v4 as uuidv4 } from 'uuid';
 import path from "path";
@@ -6,23 +6,149 @@ import User from "../../Account/User/User.model";
 import Role from "../../Account/Role/Role.model";
 
 class ApplicationService {
-    async getApplication(UserId: string) {
+    async getApplication(UserId: string, page: number, limit: number, params: any) {
+        let date1
+        let date2
+        if (params.createdAt) {
+            const str: string = params.createdAt;
+            date1 = new Date(Number(str.split("|")[0]))
+            date2 = new Date(Number(str.split("|")[1]))
+            console.log(date1, " ", date2);
+        }
         try {
-            const valiny = await Application.find({ AppId: { $ne: "d092530a-1386-4b90-9769-fcb4a38c477c" }, authors: new mongoose.Types.ObjectId(UserId) }).populate("Categorie").populate("Platform");
-            return valiny;
+            const pipeline: PipelineStage[] = [
+                {
+                    $match: {
+                        AppId: {
+                            $ne: 'd092530a-1386-4b90-9769-fcb4a38c477c'
+                        },
+                        authors: new mongoose.Types.ObjectId(UserId),
+                        DomainName: { $regex: params.name ? params.name : '', $options: 'i' },
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: 'Categorie',
+                        foreignField: '_id',
+                        as: 'categorie'
+                    }
+                },
+                { $unwind: '$categorie' },
+                {
+                    $lookup: {
+                        from: 'platforms',
+                        localField: 'Platform',
+                        foreignField: '_id',
+                        as: 'platform'
+                    }
+                },
+                { $unwind: '$platform' },
+                {
+                    $skip: limit * (page - 1)
+                },
+                {
+                    $limit: limit
+                }
+            ]
+            if (params.Categorie) {
+                pipeline.push({
+                    $match: {
+                        Categorie: new mongoose.Types.ObjectId(params.Categorie)
+                    }
+                });
+            }
+            if (params.platform) {
+                pipeline.push({
+                    $match: {
+                        Platform: new mongoose.Types.ObjectId(params.platform)
+                    }
+                });
+            }
+            if (params.status) {
+                pipeline.push({
+                    $match: {
+                        status: Number(params.status)
+                    }
+                });
+            }
+            if (date1 && date2) {
+                pipeline.push({
+                    $match: {
+                        createdAt: {
+                            $gte: date1,
+                            $lte: date2
+                        }
+                    }
+                });
+            }
+            const totalCount = await Application.aggregate([
+                {
+                    $match: {
+                        AppId: {
+                            $ne: 'd092530a-1386-4b90-9769-fcb4a38c477c'
+                        },
+                        authors: new mongoose.Types.ObjectId(UserId)
+                    }
+                },
+                { $count: 'deviceCount' }
+            ]);
+            let t = 0;
+            if (totalCount.length !== 0) { t = totalCount[0].deviceCount }
+            const totalPages = Math.ceil(t / limit);
+            const app = await Application.aggregate(pipeline);
+            return {
+                docs: app,
+                metadata: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalCount: totalCount,
+                    nextPage: (page + 1) > totalPages ? 1 : page + 1,
+                    prevPage: (page - 1) < 1 ? totalPages : page - 1
+                }
+            };
         } catch (error) {
             throw error;
         }
     }
+    
     async findApplication(application: string) {
         try {
-            const valiny = Application.findById(new mongoose.Types.ObjectId(application)).populate("Categorie").populate("Platform");
+            const valiny = Application.findById(new mongoose.Types.ObjectId(application));
             return valiny;
         } catch (error) {
             throw error;
         }
     }
-    async createApplication(DomainName: string, User: string, Uri: string, Logo: string, Categorie: mongoose.Types.ObjectId, Platform: mongoose.Types.ObjectId, UriRedirection: string) {
+    async getAppByadmin(page: number, limit: number, staus: number) {
+        try {
+            const valiny = await Application.find({
+                status: staus, AppId: {
+                    $ne: 'd092530a-1386-4b90-9769-fcb4a38c477c'
+                },
+            }).skip(limit * (page - 1)).limit(limit).exec();
+            const totalCount = await Application.find({
+                status: staus, AppId: {
+                    $ne: 'd092530a-1386-4b90-9769-fcb4a38c477c'
+                }
+            }).count();
+            const totalPages = Math.ceil(totalCount / limit);
+            console.log(valiny)
+            return {
+                docs: valiny,
+                metadata: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalCount: totalCount,
+                    nextPage: (page + 1) > totalPages ? 1 : page + 1,
+                    prevPage: (page - 1) < 1 ? totalPages : page - 1
+                }
+            };
+        } catch (error) {
+            throw error
+        }
+    }
+    async createApplication(DomainName: string, User: string, Uri: string, Logo: string, Categorie: mongoose.Types.ObjectId, Platform: mongoose.Types.ObjectId, UriRedirection: string[], Origin: string[]) {
         try {
             const AppId = await uuidv4();
             const AppKey = await uuidv4();

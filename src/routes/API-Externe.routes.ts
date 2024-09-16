@@ -19,8 +19,9 @@ apiExterneRouter.get("/Application/Logo/:Name", ApplicationController.getLogo);
 apiExterneRouter.use('/authentification', UserController.Authentication);
 apiExterneRouter.use('/authentification_2', UserController.Authentication_2);
 apiExterneRouter.post('/checkToken', UserController.checkToken);
-apiExterneRouter.post('/exchangeToken', UserController.exchangeToken);
+apiExterneRouter.post('/ExchangeToken', UserController.exchangeToken);
 apiExterneRouter.post('/Register', upload.single("file"), UserController.Register);
 apiExterneRouter.post('/test',UserController.Register);
+apiExterneRouter.post("/ForgotPass", UserController.ForgotPass);
 
 export default apiExterneRouter;

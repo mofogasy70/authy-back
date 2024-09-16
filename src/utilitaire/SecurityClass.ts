@@ -26,9 +26,8 @@ abstract class SecurityClass {
     abstract Redirect():Promise<string>;
 
     public static genererNombreAleatoire(longueur: number): number {
-        const min = Math.pow(10, longueur - 1); // Le nombre minimum a `longueur` chiffres
-        const max = Math.pow(10, longueur) - 1; // Le nombre maximum a `longueur` chiffres
-
+        const min = Math.pow(10, longueur - 1);
+        const max = Math.pow(10, longueur) - 1; 
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
     public static differenceEnMinutesEtSecondes(date1: Date, date2: Date): string {
